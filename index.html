@@ -4,31 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Maths worksheet</title>
+<link rel="stylesheet" href="style.css">
 <style>
-  * { box-sizing: border-box; }
-  body {
-    margin: 0;
-    font-family: "Comic Sans MS", "Trebuchet MS", Arial, sans-serif;
-    background: #eef1f5;
-    color: #111;
-  }
   .toolbar {
     display: flex;
     gap: 12px;
     justify-content: center;
     padding: 16px;
   }
-  button {
-    font: inherit;
-    font-size: 16px;
-    padding: 10px 22px;
-    border: 0;
-    border-radius: 8px;
-    background: #2563eb;
-    color: #fff;
-    cursor: pointer;
-  }
-  button.secondary { background: #059669; }
   .toolbar { flex-wrap: wrap; align-items: center; }
   .ops { display: flex; gap: 6px; }
   .ops button {
@@ -41,7 +24,6 @@
     font: inherit; width: 90px; padding: 8px 10px;
     border: 1px solid #94a3b8; border-radius: 8px;
   }
-  button:hover { filter: brightness(1.1); }
 
   .page {
     width: 210mm;
@@ -85,13 +67,16 @@
 
   @page { size: A4; margin: 0; }
   @media print {
-    body { background: #fff; }
     .toolbar { display: none; }
     .page { margin: 0; box-shadow: none; }
   }
 </style>
 </head>
 <body>
+  <nav class="nav">
+    <a href="index.html" aria-current="page">Worksheet</a>
+    <a href="times-tables.html">Times tables</a>
+  </nav>
   <div class="toolbar">
     <div class="ops" id="ops" role="group" aria-label="Operations">
       <button type="button" data-op="+" aria-pressed="true" title="Addition">+</button>

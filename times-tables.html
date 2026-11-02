@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Times tables</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  main { max-width: 720px; margin: 0 auto; padding: 20px 16px 40px; }
+  .tabs { display: flex; gap: 8px; justify-content: center; margin-bottom: 20px; }
+  .tabs button, .chips button {
+    background: #cbd5e1; color: #334155;
+  }
+  .tabs button[aria-pressed="true"], .chips button[aria-pressed="true"] {
+    background: #2563eb; color: #fff;
+  }
+  .card {
+    background: #fff; border-radius: 12px; padding: 20px;
+    box-shadow: 0 2px 12px rgba(0,0,0,.12);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin-bottom: 16px; }
+  .chips button { width: 48px; padding: 8px 0; font-size: 18px; }
+  .row { display: flex; gap: 12px; justify-content: center; align-items: center; flex-wrap: wrap; margin-bottom: 16px; }
+
+  /* Learn */
+  .facts { list-style: none; margin: 0; padding: 0; font-size: 26px; }
+  .facts li {
+    display: flex; justify-content: center; gap: 10px;
+    padding: 6px 0; border-bottom: 1px dashed #e2e8f0;
+  }
+  .facts .ans { min-width: 60px; text-align: left; font-weight: bold; color: #2563eb; }
+  .facts.hidden .ans { visibility: hidden; }
+  .skip { text-align: center; margin-top: 16px; font-size: 20px; color: #475569; }
+
+  /* Practice */
+  .question { font-size: 56px; text-align: center; margin: 10px 0 20px; }
+  .answer-row { display: flex; gap: 10px; justify-content: center; }
+  #answer {
+    font: inherit; font-size: 36px; width: 140px; text-align: center;
+    padding: 6px; border: 2px solid #94a3b8; border-radius: 10px;
+  }
+  .feedback { min-height: 40px; text-align: center; font-size: 22px; margin-top: 16px; }
+  .feedback.ok { color: #059669; }
+  .feedback.bad { color: #dc2626; }
+  .progress { height: 12px; background: #e2e8f0; border-radius: 6px; overflow: hidden; margin: 16px 0 8px; }
+  .progress div { height: 100%; width: 0; background: #059669; transition: width .2s; }
+  .stats { text-align: center; color: #475569; }
+  .done { text-align: center; font-size: 28px; }
+  [hidden] { display: none !important; }
+  .opt { display: flex; align-items: center; gap: 6px; font-size: 16px; }
+
+  /* Print pages (hidden on screen, shown only when printing) */
+  #printArea { display: none; }
+  .page {
+    width: 210mm; height: 297mm; padding: 12mm 15mm; background: #fff;
+    display: flex; flex-direction: column; break-after: page;
+  }
+  .page:last-child { break-after: auto; }
+  .head { display: flex; justify-content: space-between; font-size: 14pt; margin-bottom: 6mm; }
+  .head span { border-bottom: 1px solid #111; min-width: 60mm; display: inline-block; }
+  .title { text-align: center; font-size: 24pt; margin: 0 0 8mm; }
+  .grid {
+    flex: 1; display: grid; grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(10, 1fr); gap: 0 6mm;
+  }
+  .grid.key { font-size: 0.8em; }
+  .eq { display: flex; align-items: center; justify-content: center; gap: 2.2mm; font-size: 17pt; white-space: nowrap; }
+  .box { display: inline-block; width: 11mm; height: 11mm; border: 1.5px solid #111; border-radius: 2px; }
+  .key .eq b { color: #111; }
+  .ref { flex: 1; display: flex; flex-direction: column; justify-content: space-around; }
+  .ref .eq { font-size: 26pt; justify-content: flex-start; padding-left: 40mm; }
+  .ref .eq .res { min-width: 22mm; font-weight: bold; }
+  .ref .eq .line { display: inline-block; width: 22mm; border-bottom: 1.5px solid #111; height: 1em; }
+  .ref-skip { text-align: center; font-size: 16pt; margin-top: 6mm; }
+
+  /* All tables on one page: 4 columns x 3 rows */
+  .all {
+    flex: 1; display: grid; grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: repeat(3, minmax(0, 1fr)); gap: 4mm 6mm; min-height: 0;
+  }
+  .all .tbl { display: flex; flex-direction: column; justify-content: space-between; border: 1px solid #111; border-radius: 3mm; padding: 1.5mm 3mm; min-height: 0; }
+  .all h2 { margin: 0; font-size: 13pt; text-align: center; border-bottom: 1px solid #111; }
+  .all .f { font-size: 11pt; line-height: 1.15; white-space: nowrap; display: flex; justify-content: space-between; }
+  .all .f .line { display: inline-block; width: 12mm; border-bottom: 1px solid #111; height: 1em; }
+
+  @page { size: A4; margin: 0; }
+  @media print {
+    main { display: none; }
+    #printArea { display: block; }
+  }
+</style>
+</head>
+<body>
+  <nav class="nav">
+    <a href="index.html">Worksheet</a>
+    <a href="times-tables.html" aria-current="page">Times tables</a>
+  </nav>
+
+  <main>
+    <div class="tabs" role="group" aria-label="Mode">
+      <button type="button" data-mode="learn" aria-pressed="true">Learn</button>
+      <button type="button" data-mode="practice" aria-pressed="false">Practice</button>
+    </div>
+
+    <!-- LEARN -->
+    <section id="learn" class="card">
+      <div class="chips" id="learnChips" role="group" aria-label="Choose a table"></div>
+      <div class="row">
+        <button type="button" id="toggleAns" class="secondary">Hide answers</button>
+        <button type="button" id="printLearn">Print this table</button>
+        <button type="button" id="printAll">Print all tables (1 page)</button>
+      </div>
+      <ul class="facts" id="facts"></ul>
+      <div class="skip" id="skip"></div>
+    </section>
+
+    <!-- PRACTICE -->
+    <section id="practice" class="card" hidden>
+      <div class="chips" id="practiceChips" role="group" aria-label="Tables to practice"></div>
+      <div class="row"><button type="button" id="toggleAllChips" class="secondary">Select all</button></div>
+      <div class="row">
+        <button type="button" id="start" class="secondary">Start</button>
+        <button type="button" id="printPractice">Print worksheet</button>
+        <label class="opt"><input type="checkbox" id="withKey" checked> Answer key page</label>
+      </div>
+
+      <div id="game" hidden>
+        <div class="question" id="question"></div>
+        <form class="answer-row" id="form" autocomplete="off">
+          <input id="answer" type="number" inputmode="numeric" min="0" aria-label="Your answer">
+          <button type="submit">Check</button>
+        </form>
+        <div class="feedback" id="feedback" aria-live="polite"></div>
+        <div class="progress"><div id="bar"></div></div>
+        <div class="stats" id="stats"></div>
+      </div>
+
+      <div class="done" id="done" hidden></div>
+    </section>
+  </main>
+
+  <div id="printArea"></div>
+
+<script>
+const MAXN = 12;
+const QUESTIONS = 20;          // correct answers needed to finish a round
+const REQUEUE_GAP = 3;         // a missed fact comes back after this many questions
+const $ = id => document.getElementById(id);
+const rnd = (a, b) => Math.floor(Math.random() * (b - a + 1)) + a;
+
+/* ---------- mode switching ---------- */
+document.querySelectorAll('.tabs button').forEach(btn => btn.addEventListener('click', () => {
+  document.querySelectorAll('.tabs button').forEach(b => b.setAttribute('aria-pressed', String(b === btn)));
+  $('learn').hidden = btn.dataset.mode !== 'learn';
+  $('practice').hidden = btn.dataset.mode !== 'practice';
+  if (btn.dataset.mode === 'practice' && !$('game').hidden) $('answer').focus();
+}));
+
+/* ---------- chips ---------- */
+function buildChips(el, onClick) {
+  for (let n = 1; n <= MAXN; n++) {
+    const b = document.createElement('button');
+    b.type = 'button'; b.textContent = n; b.dataset.n = n;
+    b.setAttribute('aria-pressed', 'false');
+    b.addEventListener('click', () => onClick(b));
+    el.appendChild(b);
+  }
+}
+
+/* ---------- Learn ---------- */
+let learnN = 2;
+function showTable(n) {
+  learnN = n;
+  document.querySelectorAll('#learnChips button')
+    .forEach(b => b.setAttribute('aria-pressed', String(+b.dataset.n === n)));
+  $('facts').innerHTML = Array.from({ length: MAXN }, (_, i) =>
+    `<li><span>${n} × ${i + 1} =</span><span class="ans">${n * (i + 1)}</span></li>`).join('');
+  $('skip').textContent = 'Count by ' + n + ': ' +
+    Array.from({ length: 10 }, (_, i) => n * (i + 1)).join(', ');
+}
+buildChips($('learnChips'), b => showTable(+b.dataset.n));
+$('toggleAns').addEventListener('click', () => {
+  const hidden = $('facts').classList.toggle('hidden');
+  $('toggleAns').textContent = hidden ? 'Show answers' : 'Hide answers';
+});
+showTable(2);
+
+/* ---------- Practice ---------- */
+buildChips($('practiceChips'), b => {
+  const on = b.getAttribute('aria-pressed') === 'true';
+  b.setAttribute('aria-pressed', String(!on));
+});
+document.querySelectorAll('#practiceChips button').forEach(b => {
+  if (+b.dataset.n >= 2 && +b.dataset.n <= 10) b.setAttribute('aria-pressed', 'true');
+});
+
+// Select all / none for the practice tables
+const practiceBtns = () => [...document.querySelectorAll('#practiceChips button')];
+function syncAllBtn() {
+  $('toggleAllChips').textContent = practiceBtns().every(b => b.getAttribute('aria-pressed') === 'true') ? 'Select none' : 'Select all';
+}
+$('toggleAllChips').addEventListener('click', () => {
+  const all = practiceBtns().every(b => b.getAttribute('aria-pressed') === 'true');
+  practiceBtns().forEach(b => b.setAttribute('aria-pressed', String(!all)));
+  syncAllBtn();
+});
+$('practiceChips').addEventListener('click', syncAllBtn);
+syncAllBtn();
+
+let tables = [], queue = [], current = null, solved = 0, asked = 0, firstTry = 0, streak = 0, retry = false;
+
+function newFact() {
+  // Random table, random factor, random order (7×8 or 8×7)
+  const t = tables[rnd(0, tables.length - 1)], f = rnd(1, MAXN);
+  return Math.random() < 0.5 ? { a: t, b: f } : { a: f, b: t };
+}
+
+function nextQuestion() {
+  // A missed fact that is due comes back first
+  const dueIdx = queue.findIndex(q => q.due <= asked);
+  if (dueIdx >= 0) current = queue.splice(dueIdx, 1)[0].fact;
+  else {
+    do { current = newFact(); } while (asked > 0 && current.a === prev.a && current.b === prev.b && tables.length * MAXN > 1);
+  }
+  prev = current; retry = false;
+  $('question').textContent = `${current.a} × ${current.b} = ?`;
+  $('answer').value = '';
+  $('answer').focus();
+}
+let prev = { a: 0, b: 0 };
+
+function updateStats() {
+  $('bar').style.width = (solved / QUESTIONS * 100) + '%';
+  $('stats').textContent = `${solved} / ${QUESTIONS} correct · streak ${streak}`;
+}
+
+$('start').addEventListener('click', () => {
+  tables = [...document.querySelectorAll('#practiceChips button[aria-pressed="true"]')].map(b => +b.dataset.n);
+  if (!tables.length) { alert('Pick at least one table.'); return; }
+  queue = []; solved = asked = firstTry = streak = 0; prev = { a: 0, b: 0 };
+  $('game').hidden = false; $('done').hidden = true;
+  $('feedback').textContent = ''; $('feedback').className = 'feedback';
+  updateStats(); nextQuestion();
+});
+
+$('form').addEventListener('submit', e => {
+  e.preventDefault();
+  if ($('answer').value === '') return;
+  const guess = +$('answer').value, right = current.a * current.b, fb = $('feedback');
+  asked++;
+  if (guess === right) {
+    solved++; streak++;
+    if (!retry) firstTry++;
+    fb.className = 'feedback ok'; fb.textContent = '✓ Correct!';
+    updateStats();
+    if (solved >= QUESTIONS) return finish();
+    nextQuestion();
+  } else {
+    streak = 0;
+    fb.className = 'feedback bad';
+    fb.textContent = `${current.a} × ${current.b} = ${right} — try again`;
+    // Re-queue the fact, and let the child retype the answer now
+    if (!retry) queue.push({ fact: current, due: asked + REQUEUE_GAP });
+    retry = true;
+    $('answer').value = ''; $('answer').focus();
+    updateStats();
+  }
+});
+
+function finish() {
+  $('game').hidden = true;
+  $('done').hidden = false;
+  $('done').innerHTML = `🎉 Well done!<br>${firstTry} of ${QUESTIONS} right on the first try.`;
+}
+
+/* ---------- Printing ---------- */
+const HEAD = '<div class="head"><div>Name: <span></span></div><div>Date: <span style="min-width:35mm"></span></div></div>';
+const shuffle = arr => { for (let i = arr.length - 1; i > 0; i--) { const j = rnd(0, i); [arr[i], arr[j]] = [arr[j], arr[i]]; } return arr; };
+
+function printPages(html) {
+  $('printArea').innerHTML = html;
+  window.print();
+}
+
+// Learn: a table as a reference card, or a blank self-test if answers are hidden
+function learnPage(n, blank) {
+  const rows = Array.from({ length: MAXN }, (_, i) => {
+    const right = blank ? '<span class="line"></span>' : n * (i + 1);
+    return `<div class="eq">${n} × ${i + 1} = <span class="res">${right}</span></div>`;
+  }).join('');
+  const skip = blank ? '_ '.repeat(10) : Array.from({ length: 10 }, (_, i) => n * (i + 1)).join(', ');
+  return `<div class="page">${HEAD}<h1 class="title">The ${n} times table</h1>
+    <div class="ref">${rows}</div><div class="ref-skip">Count by ${n}: ${skip}</div></div>`;
+}
+const learnBlank = () => $('facts').classList.contains('hidden');
+$('printLearn').addEventListener('click', () => printPages(learnPage(learnN, learnBlank())));
+// All 12 tables on a single page (blank answers if "Hide answers" is on)
+$('printAll').addEventListener('click', () => {
+  const blank = learnBlank();
+  const tbl = n => `<div class="tbl"><h2>${n} ×</h2>` + Array.from({ length: MAXN }, (_, i) =>
+    `<div class="f"><span>${n} × ${i + 1} =</span>${blank ? '<span class="line"></span>' : `<b>${n * (i + 1)}</b>`}</div>`).join('') + '</div>';
+  printPages(`<div class="page">${HEAD}<h1 class="title" style="margin-bottom:4mm">Times tables 1–12</h1>
+    <div class="all">${Array.from({ length: MAXN }, (_, i) => tbl(i + 1)).join('')}</div></div>`);
+});
+
+// Practice: 30 questions from the selected tables, with optional answer key
+$('printPractice').addEventListener('click', () => {
+  const sel = [...document.querySelectorAll('#practiceChips button[aria-pressed="true"]')].map(b => +b.dataset.n);
+  if (!sel.length) { alert('Pick at least one table.'); return; }
+  const pool = [];
+  sel.forEach(t => { for (let f = 1; f <= MAXN; f++) pool.push(Math.random() < 0.5 ? { a: t, b: f } : { a: f, b: t }); });
+  let facts = [];
+  while (facts.length < 30) facts = facts.concat(shuffle(pool.slice()));
+  facts = facts.slice(0, 30);
+
+  const cell = (f, key) => `<div class="eq">${f.a} × ${f.b} = ${key ? `<b>${f.a * f.b}</b>` : '<span class="box"></span>'}</div>`;
+  let html = `<div class="page">${HEAD}<div class="grid">${facts.map(f => cell(f, false)).join('')}</div></div>`;
+  if ($('withKey').checked)
+    html += `<div class="page"><h1 class="title">Answer key</h1><div class="grid key">${facts.map(f => cell(f, true)).join('')}</div></div>`;
+  printPages(html);
+});
+</script>
+</body>
+</html>
