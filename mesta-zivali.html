@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="sl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ime, priimek, država</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  .toolbar {
+    display: flex; flex-wrap: wrap; align-items: center;
+    gap: 12px; justify-content: center; padding: 16px;
+  }
+  .wrap { overflow-x: auto; padding: 0 16px 24px; }
+
+  /* A4 landscape sheet */
+  .page {
+    width: 297mm;
+    height: 210mm;
+    margin: 0 auto;
+    padding: 10mm 12mm;
+    background: #fff;
+    box-shadow: 0 2px 12px rgba(0,0,0,.2);
+    display: flex;
+    flex-direction: column;
+  }
+  .head {
+    display: flex;
+    justify-content: space-between;
+    font-size: 14pt;
+    margin-bottom: 5mm;
+  }
+  .head span { border-bottom: 1px solid #111; min-width: 60mm; display: inline-block; }
+
+  table.game {
+    flex: 1;
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+  }
+  .game th, .game td { border: 1.5px solid #111; }
+  .game th {
+    font-size: 13pt;
+    font-weight: bold;
+    padding: 2.5mm 1mm;
+    background: #e2e8f0;
+  }
+  .game col.letter { width: 16mm; }
+  .game col.points { width: 20mm; }
+  .game tbody td.l {
+    text-align: center;
+    font-size: 26pt;
+    font-weight: bold;
+  }
+  .game tfoot td { height: 13mm; font-size: 13pt; font-weight: bold; }
+  .game tfoot td.label { text-align: right; padding-right: 3mm; border: 0; }
+
+  @page { size: A4 landscape; margin: 0; }
+  @media print {
+    .toolbar { display: none; }
+    .wrap { padding: 0; overflow: visible; }
+    .page { margin: 0; box-shadow: none; }
+    .game th { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+</style>
+</head>
+<body>
+  <nav class="nav">
+    <a href="index.html">Worksheet</a>
+    <a href="times-tables.html">Times tables</a>
+    <a href="mesta-zivali.html" aria-current="page">Ime, priimek, država</a>
+  </nav>
+  <div class="toolbar">
+    <button id="gen">Nove črke</button>
+    <button id="print" class="secondary">Natisni</button>
+  </div>
+
+  <div class="wrap">
+    <div class="page">
+      <div class="head"><div>Ime: <span></span></div><div>Datum: <span style="min-width:35mm"></span></div></div>
+      <table class="game">
+        <colgroup>
+          <col class="letter">
+          <col><col><col><col><col><col><col>
+          <col class="points">
+        </colgroup>
+        <thead>
+          <tr>
+            <th>Črka</th><th>Ime</th><th>Priimek</th><th>Država</th><th>Mesto</th>
+            <th>Žival</th><th>Rastlina</th><th>Predmet</th><th>Točke</th>
+          </tr>
+        </thead>
+        <tbody id="rows"></tbody>
+        <tfoot>
+          <tr><td class="label" colspan="8">Skupaj:</td><td></td></tr>
+        </tfoot>
+      </table>
+    </div>
+  </div>
+
+<script>
+const ROWS = 6;
+// Slovenian alphabet
+const LETTERS = ['A','B','C','Č','D','E','F','G','H','I','J','K','L','M','N','O','P','R','S','Š','T','U','V','Z','Ž'];
+
+function generate() {
+  // 6 different letters, random order
+  const pool = LETTERS.slice();
+  for (let i = pool.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [pool[i], pool[j]] = [pool[j], pool[i]];
+  }
+  document.getElementById('rows').innerHTML = pool.slice(0, ROWS)
+    .map(l => `<tr><td class="l">${l}</td>${'<td></td>'.repeat(8)}</tr>`).join('');
+}
+
+document.getElementById('gen').addEventListener('click', generate);
+document.getElementById('print').addEventListener('click', () => window.print());
+generate();
+</script>
+</body>
+</html>
